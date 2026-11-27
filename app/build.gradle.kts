@@ -50,9 +50,7 @@ dependencies {
   androidTestImplementation(composeBom)
 
   // Core Android dependencies
-  implementation(libs.androidx.core.ktx)
   implementation(libs.androidx.core.splashscreen)
-  implementation(libs.androidx.lifecycle.runtime.ktx)
   implementation(libs.androidx.activity.compose)
 
   // Arch Components
@@ -80,10 +78,6 @@ dependencies {
   androidTestImplementation(libs.androidx.test.runner)
   androidTestImplementation(libs.androidx.test.espresso.core)
 
-  // Navigation
-  implementation(libs.androidx.navigation3.ui)
-  implementation(libs.androidx.navigation3.runtime)
-  implementation(libs.androidx.lifecycle.viewmodel.navigation3)
   implementation(libs.androidx.datastore.preferences)
   implementation(libs.kotlinx.serialization.json)
   implementation(libs.androidx.room.runtime)

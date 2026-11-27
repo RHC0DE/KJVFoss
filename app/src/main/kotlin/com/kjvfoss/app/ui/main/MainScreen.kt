@@ -60,7 +60,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation3.runtime.NavKey
 import com.kjvfoss.app.data.BibleChapter
 import com.kjvfoss.app.data.BibleData
 import com.kjvfoss.app.data.SavedData
@@ -76,7 +75,6 @@ private val highlightColors = listOf(
 
 @Composable
 fun MainScreen(
-  onItemClick: (NavKey) -> Unit,
   onToggleTheme: () -> Unit = {},
   darkTheme: Boolean = false,
   modifier: Modifier = Modifier,

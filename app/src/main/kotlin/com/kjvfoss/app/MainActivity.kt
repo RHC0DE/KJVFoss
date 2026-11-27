@@ -14,15 +14,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import com.kjvfoss.app.ui.main.MainScreen
 import com.kjvfoss.app.ui.theme.KJVFossTheme
 
 class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
-    val splashScreen = installSplashScreen()
+    installSplashScreen()
     super.onCreate(savedInstanceState)
-    var keepSplash = true
-    splashScreen.setKeepOnScreenCondition { keepSplash }
-    window.decorView.postDelayed({ keepSplash = false }, 1500)
 
     enableEdgeToEdge()
     setContent {
@@ -30,7 +28,7 @@ class MainActivity : ComponentActivity() {
       var darkTheme by rememberSaveable { mutableStateOf(systemDarkTheme) }
       KJVFossTheme(darkTheme = darkTheme) {
         Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-          MainNavigation(
+          MainScreen(
             onToggleTheme = { darkTheme = !darkTheme },
             darkTheme = darkTheme,
           )

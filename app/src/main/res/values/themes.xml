@@ -5,7 +5,7 @@
 
     <style name="Theme.KJVFoss.Splash" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">#5D101D</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_logo</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
         <item name="windowSplashScreenIconBackgroundColor">#5D101D</item>
         <item name="postSplashScreenTheme">@style/Theme.KJVFoss</item>
     </style>
