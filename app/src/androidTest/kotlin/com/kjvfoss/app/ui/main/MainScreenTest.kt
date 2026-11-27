@@ -25,4 +25,12 @@ class MainScreenTest {
     }
     composeTestRule.onNodeWithText("Genesis").assertExists()
   }
+
+  @Test
+  fun insightTabIsRemoved() {
+    composeTestRule.waitUntil(timeoutMillis = 10_000) {
+      composeTestRule.onAllNodesWithText("Genesis", substring = true).fetchSemanticsNodes().isNotEmpty()
+    }
+    composeTestRule.onNodeWithText("Insight").assertDoesNotExist()
+  }
 }

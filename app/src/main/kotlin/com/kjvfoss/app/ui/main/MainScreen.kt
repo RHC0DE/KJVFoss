@@ -18,8 +18,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -44,7 +42,6 @@ import androidx.compose.material.icons.rounded.Bookmark
 import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.EditNote
 import androidx.compose.material.icons.rounded.LightMode
-import androidx.compose.material.icons.rounded.Lightbulb
 import androidx.compose.material.icons.automirrored.rounded.MenuBook
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -66,16 +63,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.NavKey
 import com.kjvfoss.app.data.BibleChapter
 import com.kjvfoss.app.data.BibleData
-import com.kjvfoss.app.data.ChapterInsight
 import com.kjvfoss.app.data.SavedData
 import com.kjvfoss.app.data.SavedVerse
-import com.kjvfoss.app.data.StudyRoot
 import com.kjvfoss.app.data.StudyNote
 import com.kjvfoss.app.data.Verse
-import com.kjvfoss.app.data.buildChapterInsight
-import com.kjvfoss.app.data.findGreekRoots
-import com.kjvfoss.app.data.findHebrewRoots
-import com.kjvfoss.app.data.isOldTestamentChapter
 
 private val highlightColors = listOf(
   "#FFF0A8" to "Yellow",
@@ -140,11 +131,10 @@ private fun BibleHome(
   }
   val chapterList = bible.chaptersFor(selectedBook)
   val chapter = chapterList.firstOrNull { it.number == selectedChapter } ?: chapterList.first()
-  val tabLabels = listOf("Read", "Saved", "Insight", "Notes")
+  val tabLabels = listOf("Read", "Saved", "Notes")
   val tabIcons = listOf(
     Icons.AutoMirrored.Rounded.MenuBook,
     Icons.Rounded.Bookmark,
-    Icons.Rounded.Lightbulb,
     Icons.Rounded.EditNote,
   )
 
@@ -154,8 +144,6 @@ private fun BibleHome(
       TopAppBar(
         title = {
           if (selectedTab == 2) {
-            Text("Insight · ${chapter.reference}")
-          } else if (selectedTab == 3) {
             Text("Notes")
           } else if (selectedTab == 1) {
             Text("Saved")
@@ -266,12 +254,7 @@ private fun BibleHome(
             onRemoveHighlight = { viewModel.setHighlight(it.reference, null) },
           )
         }
-        2 -> InsightScreen(
-          chapter = chapter,
-          insight = buildChapterInsight(chapter),
-          modifier = Modifier.weight(1f),
-        )
-        3 -> NotesScreen(
+        2 -> NotesScreen(
           notes = notes,
           chapter = chapter,
           onSave = viewModel::saveNote,
@@ -453,65 +436,6 @@ private fun SavedItems(
         }
       }
     }
-  }
-}
-
-@Composable
-private fun InsightScreen(
-  chapter: BibleChapter,
-  insight: ChapterInsight,
-  modifier: Modifier = Modifier,
-) {
-  Column(
-    modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp),
-    verticalArrangement = Arrangement.spacedBy(12.dp),
-  ) {
-    Text("Summary", style = MaterialTheme.typography.titleLarge)
-    Text("${insight.verseCount} verses", style = MaterialTheme.typography.labelLarge)
-    Text(insight.summaryParagraph, style = MaterialTheme.typography.bodyLarge)
-    val oldTestament = isOldTestamentChapter(chapter)
-    Text(
-      if (oldTestament) "Key Words & Hebrew Roots" else "Key Words & Koine Greek Roots",
-      style = MaterialTheme.typography.titleMedium,
-    )
-    val roots: List<StudyRoot> = if (oldTestament) findHebrewRoots(chapter) else findGreekRoots(chapter)
-    if (roots.isNotEmpty()) {
-      roots.forEach { root ->
-        Card(Modifier.fillMaxWidth()) {
-          Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-            Text(root.englishTerm, style = MaterialTheme.typography.titleSmall)
-            Text(root.originalScript, style = MaterialTheme.typography.headlineSmall)
-            Text("${root.transliteration} · “${root.literalMeaning}”")
-          }
-        }
-      }
-    } else {
-      Text(
-        if (oldTestament) "No mapped Hebrew roots found in this chapter."
-        else "No mapped Koine Greek roots found in this chapter.",
-        style = MaterialTheme.typography.bodyMedium,
-      )
-    }
-    Text(
-      "Word matches are a local study aid, not a complete concordance; an English KJV word may translate different original-language words.",
-      style = MaterialTheme.typography.bodyMedium,
-    )
-    Text("Names and terms mentioned", style = MaterialTheme.typography.titleMedium)
-    Text(insight.capitalizedTerms.joinToString().ifEmpty { "No names or terms detected." })
-    Text("Key verses", style = MaterialTheme.typography.titleMedium)
-    insight.keyVerses.forEach { verse ->
-      Card(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-          Text(verse.reference, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
-          Text(verse.text, style = MaterialTheme.typography.bodyMedium)
-        }
-      }
-    }
-    Text(
-      "The summary and key verses use only the local KJV text in ${chapter.reference}.",
-      style = MaterialTheme.typography.bodySmall,
-      color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
   }
 }
 
