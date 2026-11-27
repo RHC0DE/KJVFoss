@@ -4,6 +4,10 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Intent
 import android.widget.Toast
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -15,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -54,12 +59,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.delay
 import com.kjvfoss.app.data.BibleChapter
 import com.kjvfoss.app.data.BibleData
 import com.kjvfoss.app.data.SavedData
@@ -83,10 +91,14 @@ fun MainScreen(
   val viewModel: MainScreenViewModel = viewModel { MainScreenViewModel(context.applicationContext) }
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   val bible = uiState.bible
+  var showLoadingAnimation by remember { mutableStateOf(true) }
   when {
-    uiState.loading -> Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-      Text("Loading the KJV…")
-    }
+    uiState.loading || (showLoadingAnimation && uiState.error == null) ->
+      CrossLoadingScreen(
+        isLoading = uiState.loading,
+        onFinished = { showLoadingAnimation = false },
+        modifier = modifier,
+      )
     uiState.error != null -> Column(modifier.padding(24.dp)) {
       Text("Unable to load local data.", style = MaterialTheme.typography.titleMedium)
       Text(uiState.error.orEmpty())
@@ -101,6 +113,95 @@ fun MainScreen(
       darkTheme = darkTheme,
       modifier = modifier,
     )
+  }
+}
+
+@Composable
+private fun CrossLoadingScreen(
+  isLoading: Boolean,
+  onFinished: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  val progress = remember { Animatable(0f) }
+  LaunchedEffect(isLoading) {
+    if (isLoading) {
+      while (true) {
+        progress.animateTo(
+          targetValue = 1f,
+          animationSpec = tween(durationMillis = 1_250, easing = FastOutSlowInEasing),
+        )
+        delay(140)
+        progress.snapTo(0f)
+      }
+    } else {
+      progress.animateTo(
+        targetValue = 1f,
+        animationSpec = tween(durationMillis = 420, easing = FastOutSlowInEasing),
+      )
+      delay(250)
+      onFinished()
+    }
+  }
+
+  Box(
+    modifier = modifier.fillMaxSize().background(Color(0xFF5D101D)),
+    contentAlignment = Alignment.Center,
+  ) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+      Canvas(Modifier.size(width = 88.dp, height = 136.dp)) {
+        val gold = Color(0xFFD6B775)
+        val highlight = Color(0xFFF6EBD4)
+        val shaftWidth = size.width * 0.115f
+        val centerX = size.width / 2f
+        val topY = size.height * 0.14f
+        val barY = size.height * 0.4f
+        val bottomY = size.height * 0.88f
+        val shaftProgress = (progress.value / 0.72f).coerceIn(0f, 1f)
+        val shaftTop = bottomY - (bottomY - topY) * shaftProgress
+        val barProgress = ((progress.value - 0.55f) / 0.45f).coerceIn(0f, 1f)
+
+        fun drawBeam(start: Offset, end: Offset) {
+          drawLine(
+            color = Color(0xFF351018),
+            start = start,
+            end = end,
+            strokeWidth = shaftWidth + 4.dp.toPx(),
+            cap = StrokeCap.Round,
+          )
+          drawLine(
+            color = gold.copy(alpha = 0.16f),
+            start = start,
+            end = end,
+            strokeWidth = shaftWidth * 2.2f,
+            cap = StrokeCap.Round,
+          )
+          drawLine(
+            color = gold,
+            start = start,
+            end = end,
+            strokeWidth = shaftWidth,
+            cap = StrokeCap.Round,
+          )
+          drawLine(
+            color = highlight.copy(alpha = 0.72f),
+            start = start,
+            end = end,
+            strokeWidth = shaftWidth * 0.16f,
+            cap = StrokeCap.Round,
+          )
+        }
+
+        drawBeam(Offset(centerX, bottomY), Offset(centerX, shaftTop))
+        val halfBarWidth = size.width * 0.34f * barProgress
+        drawBeam(Offset(centerX - halfBarWidth, barY), Offset(centerX + halfBarWidth, barY))
+      }
+      Spacer(Modifier.height(24.dp))
+      Text(
+        text = "Loading the KJV…",
+        color = Color(0xFFF6EBD4),
+        style = MaterialTheme.typography.titleMedium,
+      )
+    }
   }
 }
 

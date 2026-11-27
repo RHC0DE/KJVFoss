@@ -20,17 +20,31 @@ class MainScreenTest {
 
   @Test
   fun localBibleIsLoaded() {
-    composeTestRule.waitUntil(timeoutMillis = 10_000) {
-      composeTestRule.onAllNodesWithText("Genesis", substring = true).fetchSemanticsNodes().isNotEmpty()
-    }
+    waitForBibleLoaded()
     composeTestRule.onNodeWithText("Genesis").assertExists()
   }
 
   @Test
-  fun insightTabIsRemoved() {
+  fun loadingAnimationFinishesWhenBibleIsLoaded() {
     composeTestRule.waitUntil(timeoutMillis = 10_000) {
+      composeTestRule.onAllNodesWithText("Loading the KJV…").fetchSemanticsNodes().isNotEmpty()
+    }
+    composeTestRule.onNodeWithText("Loading the KJV…").assertExists()
+
+    waitForBibleLoaded()
+    composeTestRule.onNodeWithText("Loading the KJV…").assertDoesNotExist()
+  }
+
+  @Test
+  fun insightTabIsRemoved() {
+    waitForBibleLoaded()
+    composeTestRule.onNodeWithText("Insight").assertDoesNotExist()
+  }
+
+  private fun waitForBibleLoaded() {
+    composeTestRule.waitUntil(timeoutMillis = 10_000) {
+      composeTestRule.mainClock.advanceTimeBy(16)
       composeTestRule.onAllNodesWithText("Genesis", substring = true).fetchSemanticsNodes().isNotEmpty()
     }
-    composeTestRule.onNodeWithText("Insight").assertDoesNotExist()
   }
 }
